@@ -1,0 +1,45 @@
+import os
+import pandas as pd
+import torch
+import torch.nn as nn
+import torchvision.transforms as transforms
+import torchvision
+import matplotlib
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
+from skimage import io
+
+class CustomDataset(Dataset):
+    def __init__(self, csv_file, img_dir, transform=None, target_transform=None):
+        self.img_labels = pd.read_csv(csv_file)
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def getitem(self, idx):
+        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+        image = io.imread(img_path)
+        # Added to check picture
+        io.imshow(img_path)
+        matplotlib.pyplot.show()
+        #
+        label = torch.tensor(int(self.img_labels.iloc[idx, 1]))
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            label = self.target_transform(label)
+        return image, label
+    
+dataset = CustomDataset(csv_file = 'Face.csv', img_dir = 'Face_images')
+image,label = dataset.getitem(0)
+'''
+train_set = 271 #(21 students*13 pictures) - 2 cause seth
+batch_size = 32 
+#Smaller batches means that the number of parameter updates per epoch is greater
+#Inherently, this update will be much more noisy as the loss is computed over a smaller subset of the data. 
+#However, this noise seems to help the generalization of the model.
+train_loader = DataLoader(dataset=train_set,batch_size = batch_size, shuffle = True)
+'''
